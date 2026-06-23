@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal - Feature Flag System</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header (Hidden on Auth) -->
+    <header id="app-header" class="hidden">
+      <div class="logo-section">
+        <div class="logo-icon">A</div>
+        <div class="logo-text">AdminPortal</div>
+        <span class="logo-badge" id="display-org-name">Loading Org...</span>
+      </div>
+      <div class="user-info">
+        <span class="username-tag" id="display-username">Admin</span>
+        <button class="btn btn-secondary btn-icon" id="logout-btn" style="width: auto; padding: 0.4rem 1rem;">
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Alert container for user feedback -->
+    <div id="alert-container"></div>
+
+    <!-- AUTH WRAPPER (LOGIN / SIGNUP) -->
+    <div class="auth-wrapper" id="auth-section">
+      <!-- Login Card -->
+      <div class="card" id="login-card">
+        <h2 class="card-title text-center">Admin Login</h2>
+        <p class="card-desc text-center">Manage your organization's feature flags</p>
+        
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-org">Select Organization</label>
+            <select id="login-org" required>
+              <option value="">-- Load Organizations --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" placeholder="Enter username" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn mt-4" id="login-btn-text">
+            Log In
+          </button>
+        </form>
+        <p class="text-center mt-4" style="font-size: 0.85rem; color: var(--text-muted);">
+          New organization admin? <a href="#" id="switch-to-signup">Sign Up</a>
+        </p>
+      </div>
+
+      <!-- Signup Card (Hidden on load) -->
+      <div class="card hidden" id="signup-card">
+        <h2 class="card-title text-center">Admin Registration</h2>
+        <p class="card-desc text-center">Sign up to manage organization feature flags</p>
+        
+        <form id="signup-form">
+          <div class="form-group">
+            <label for="signup-org">Select Organization</label>
+            <select id="signup-org" required>
+              <option value="">-- Load Organizations --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="signup-username">Username</label>
+            <input type="text" id="signup-username" placeholder="Username (min 3 chars)" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-email">Email (Optional)</label>
+            <input type="email" id="signup-email" placeholder="admin@org.com">
+          </div>
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" placeholder="Min 6 chars, uppercase, digit" required>
+          </div>
+          <button type="submit" class="btn mt-4" id="signup-btn-text">
+            Register Admin
+          </button>
+        </form>
+        <p class="text-center mt-4" style="font-size: 0.85rem; color: var(--text-muted);">
+          Already have an account? <a href="#" id="switch-to-login">Log In</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="dashboard-grid hidden" id="dashboard-section">
+      <!-- Sidebar Feature Flag Creation -->
+      <aside class="side-panel">
+        <h3 class="mb-4">Create Flag</h3>
+        <p class="card-desc" style="margin-bottom: 1.5rem;">Configure a new feature flag key for integration.</p>
+        
+        <form id="create-flag-form">
+          <div class="form-group">
+            <label for="flag-key">Feature Key</label>
+            <input type="text" id="flag-key" placeholder="e.g. beta_dashboard" required>
+            <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 0.25rem;">
+              Only alphanumeric and underscores.
+            </small>
+          </div>
+          <div class="form-group">
+            <label for="flag-desc">Description</label>
+            <textarea id="flag-desc" rows="3" placeholder="Explain what feature this controls..."></textarea>
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem;">
+            <label style="margin-bottom: 0;">Enable by default?</label>
+            <label class="switch">
+              <input type="checkbox" id="flag-enabled">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <button type="submit" class="btn mt-4">
+            Add Feature Flag
+          </button>
+        </form>
+      </aside>
+
+      <!-- Main Panel Flag List & Stats -->
+      <main class="main-content">
+        <!-- Stats summary -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="stat-label">Total Flags</span>
+            <span class="stat-value" id="stat-total-flags">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Active (Enabled)</span>
+            <span class="stat-value" id="stat-active-flags" style="color: var(--success);">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Inactive (Disabled)</span>
+            <span class="stat-value" id="stat-inactive-flags" style="color: var(--danger);">0</span>
+          </div>
+        </div>
+
+        <!-- Flags Table Grid -->
+        <div class="table-container">
+          <div class="table-header">
+            <h3>Feature Flag Configurations</h3>
+            <button class="btn btn-secondary btn-icon" id="refresh-btn" style="width: auto; padding: 0.4rem 1rem;">
+              Refresh List
+            </button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Feature Key</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                  <th class="text-center">Toggle</th>
+                  <th>Last Modified</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="flags-table-body">
+                <tr>
+                  <td colspan="6" class="text-center" style="color: var(--text-muted); padding: 3rem 0;">
+                    Loading configuration flags...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- EDIT FEATURE FLAG MODAL -->
+  <div class="modal-backdrop" id="edit-modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Edit Feature Flag</h3>
+        <button class="btn btn-secondary btn-icon" id="close-modal-btn" style="width: auto; border: none; font-size: 1.25rem; padding: 0.2rem 0.5rem; background: transparent;">
+          &times;
+        </button>
+      </div>
+      <form id="edit-flag-form">
+        <div class="modal-body">
+          <input type="hidden" id="edit-flag-id">
+          <div class="form-group">
+            <label for="edit-flag-key">Feature Key</label>
+            <input type="text" id="edit-flag-key" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-flag-desc">Description</label>
+            <textarea id="edit-flag-desc" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="width: auto;">
+            Cancel
+          </button>
+          <button type="submit" class="btn" style="width: auto;">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
