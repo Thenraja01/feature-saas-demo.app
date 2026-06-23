@@ -13,7 +13,7 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
     >
-      {theme === 'dark' ? '☀ Light' : '🌙 Dark'}
+      {theme === 'dark' ? '☀ Light' : '🌛 Dark'}
     </button>
   );
 }
