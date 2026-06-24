@@ -14,7 +14,7 @@ const getEnvVar = (name) => {
 
 // Base API configuration
 export const API_CONFIG = {
-  baseURL: getEnvVar('VITE_API_URL') || 'http://localhost:5000/api',
+  baseURL: getEnvVar('VITE_API_URL') || 'http://localhost:5000',
   defaultHeaders: {
     'Content-Type': 'application/json',
   },
